@@ -1,32 +1,39 @@
 'use strict';
 
 const pg = require('pg');
+var Promise = require('promise');
+
+function query(sql) {
+	return new Promise(function(resolve, reject) {
+		var urlCon = 'postgres://user:pass@192.168.25.20/db';
+
+		pg.connect(urlCon, function(err, client, done) {
+	        if (err) {
+				done();
+				return reject(err);
+	        }
+
+	        var result = [];
+
+	        client.query(sql).on('row', function(row) {
+				result.push(row);
+	        }).on('end', function() {
+	            done();
+	            resolve(result);
+	        });
+	    });
+	});
+}
 
 module.exports = function(router) {
 
     router.get('/produtos', function(req, res) {
-    	var urlCon = 'postgres://user:pass@192.168.25.20/bd';
- 		var results = [];
-    	var data = {text: req.body.text, complete: false};
-
-	    pg.connect(urlCon, function(err, client, done) {
-	        if (err) {
-	          done();
-	          console.log(err);
-	          return res.status(500).json({ success: false, data: err});
-	        }
-
-	        var query = client.query("SELECT * FROM contratos_cliente  LIMIT 10 OFFSET 10");
-
-	        query.on('row', function(row) {
-				results.push(row);
-	        });
-
-	        query.on('end', function() {
-	            done();
-	            return res.json(results);
-	        });
-	    });    	
+	   	query("SELECT * FROM contratos_cliente LIMIT 10 OFFSET 10").then(function(rows) {
+			return res.status(200).json(rows);
+	   	}).catch(function(err) {
+	   		console.log(err);
+			return res.status(500).json({ success: false, data: err});
+	   	});
     });
 
 }
