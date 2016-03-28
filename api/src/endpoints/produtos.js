@@ -5,7 +5,7 @@ const pg = require('pg');
 module.exports = function(router) {
 
     router.get('/produtos', function(req, res) {
-    	var urlCon = 'postgres://sigem:sigem00@192.168.25.20/sigem';
+    	var urlCon = 'postgres://user:pass@192.168.25.20/bd';
  		var results = [];
     	var data = {text: req.body.text, complete: false};
 
