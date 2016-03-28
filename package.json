@@ -30,17 +30,19 @@
     "css-loader": "^0.23.1",
     "electron-packager": "^5.2.1",
     "electron-prebuilt": "^0.36.0",
-    "material-ui": "^0.14.4",
-    "react": "^0.14.7",
-    "react-dom": "^0.14.7",
-    "react-tap-event-plugin": "^0.2.2",
+    "sqlite3": "^3.1.2",
     "style-loader": "^0.13.1",
     "webpack": "^1.12.14",
     "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
+    "material-ui": "^0.14.4",
+    "react": "^0.14.7",
+    "react-dom": "^0.14.7",
+    "react-tap-event-plugin": "^0.2.2",
     "body-parser": "^1.15.0",
     "express": "^4.13.4",
+    "knex": "^0.10.0",
     "pg": "^4.5.1",
     "promise": "^7.1.1"
   }

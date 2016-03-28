@@ -1,7 +1,8 @@
 'use strict';
 
 const pg = require('pg');
-var Promise = require('promise');
+const Promise = require('promise');
+const dao = require('../dao');
 
 function query(sql) {
 	return new Promise(function(resolve, reject) {
