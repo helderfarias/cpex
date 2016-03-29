@@ -18,7 +18,9 @@ App.on('ready', function() {
     mainWindow = new BrowserWindow({ width: 1240, height: 800 });
     mainWindow.loadURL('file://' + __dirname + '/index.html');
 	
-    mainWindow.openDevTools();
+    if (typeof process !== 'undefined' && process.env.NODE_DEBUG === 'true') {
+        mainWindow.openDevTools();
+    }
 
     mainWindow.on('closed', function() {
         mainWindow = null;

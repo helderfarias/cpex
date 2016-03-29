@@ -5,9 +5,13 @@
   "description": "Croquil",
   "scripts": {
     "build": "webpack -p",
-    "start": "NODE_ENV=dev electron .",
+    "start": "NODE_ENV=dev NODE_DEBUG=true electron .",
     "package": "NODE_ENV=prod && npm run build && electron-packager ./ Croquil --out ./bin --platform=darwin --arch=x64 --version=0.36.0 --overwrite --ignore=\"ignore|.bin|bin|web/src|web/css|webpack.config.js|.gitignore|.editorconfig|.babelrc|css|cfg|README.md\"",
-    "watch": "webpack-dev-server --hot --inline"
+    "watch": "webpack-dev-server --hot --inline",
+    "migrate-up": "knex migrate:latest --cwd ./api/migrations",
+    "migrate-make": "MIGRATE_ARGS=-w knex migrate:make $MIGRATE_ARGS --cwd ./api/migrations",
+    "seed-up": "knex seed:run --cwd ./api/migrations",
+    "seed-make": "SEED_ARGS=-w knex seed:make $SEED_ARGS --cwd ./api/migrations"
   },
   "repository": {
     "type": "git",
@@ -30,20 +34,21 @@
     "css-loader": "^0.23.1",
     "electron-packager": "^5.2.1",
     "electron-prebuilt": "^0.36.0",
-    "sqlite3": "^3.1.2",
     "style-loader": "^0.13.1",
     "webpack": "^1.12.14",
     "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
-    "material-ui": "^0.14.4",
-    "react": "^0.14.7",
-    "react-dom": "^0.14.7",
-    "react-tap-event-plugin": "^0.2.2",
     "body-parser": "^1.15.0",
     "express": "^4.13.4",
     "knex": "^0.10.0",
+    "material-ui": "^0.14.4",
     "pg": "^4.5.1",
-    "promise": "^7.1.1"
+    "promise": "^7.1.1",
+    "react": "^0.14.7",
+    "react-dom": "^0.14.7",
+    "react-router": "^2.0.1",
+    "react-tap-event-plugin": "^0.2.2",
+    "sqlite3": "^3.1.2"
   }
 }

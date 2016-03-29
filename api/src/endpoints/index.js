@@ -2,8 +2,8 @@
 
 const express = require('express');
 const router = express.Router();
-const versao = require('./versao');
-const produtos = require('./produtos');
+const versao = require('./versao_endpoint');
+const produtos = require('./produto_endpoint');
 
 versao(router);
 produtos(router);
