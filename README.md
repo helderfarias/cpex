@@ -1,4 +1,4 @@
-# CroquilApp
+# CPEX
 
 Prova de conceito usando Electron + React + Webpack
 
