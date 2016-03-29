@@ -1,12 +1,12 @@
 {
-  "name": "croquilapp",
+  "name": "cpex",
   "version": "1.0.0",
   "main": "main.js",
-  "description": "Croquil",
+  "description": "cpex",
   "scripts": {
     "build": "webpack -p",
     "start": "NODE_ENV=dev NODE_DEBUG=true electron .",
-    "package": "NODE_ENV=prod && npm run build && electron-packager ./ Croquil --out ./bin --platform=darwin --arch=x64 --version=0.36.0 --overwrite --ignore=\"ignore|.bin|bin|web/src|web/css|webpack.config.js|.gitignore|.editorconfig|.babelrc|css|cfg|README.md\"",
+    "package": "NODE_ENV=prod && npm run build && electron-packager ./ CPEX --out ./bin --platform=darwin --arch=x64 --version=0.36.0 --overwrite --ignore=\"ignore|.bin|bin|web/src|web/css|webpack.config.js|.gitignore|.editorconfig|.babelrc|css|cfg|README.md\"",
     "watch": "webpack-dev-server --hot --inline",
     "migrate-up": "knex migrate:latest --cwd ./api/migrations",
     "migrate-make": "MIGRATE_ARGS=-w knex migrate:make $MIGRATE_ARGS --cwd ./api/migrations",
@@ -15,15 +15,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/helderfarias/croquilapp.git"
+    "url": "https://github.com/helderfarias/cpex.git"
   },
   "keywords": [
-    "croquil"
+    "cpex",
+    "react",
+    "flux",
+    "electron"
   ],
   "author": "Helder Farias",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/helderfarias/croquilapp.git/issues"
+    "url": "https://github.com/helderfarias/cpex.git/issues"
   },
   "devDependencies": {
     "babel": "^6.5.2",
