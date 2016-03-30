@@ -36,8 +36,11 @@ class NovoMarkupView extends Component {
 
     getInitialStateFrom() {
         return {
-            open: false,
-            erros: '',
+            dialog: {
+                open: false,
+                text: '',
+                title: '',
+            },
             markup: { incidentes: [] },
             isNovoIncidente: false,
             nome: null,
@@ -90,7 +93,7 @@ class NovoMarkupView extends Component {
                             />
                         ]}
                         modal={false}
-                        open={this.state.open}
+                        open={this.state.dialog.open}
                         onRequestClose={this.handleClose}>
                         {this.state.dialog.text}
                     </Dialog>
@@ -197,7 +200,7 @@ class NovoMarkupView extends Component {
         markup.incidentes.filter((i) => somatorio = somatorio + parseFloat(i.valor));
         somatorio = somatorio + parseFloat(this.state.valor);
         if (somatorio > 100) {
-            this.setState({ open: true, erros: 'Percentual ultrapassou 100%' });
+            this.setState({ dialog: { open: true, text: 'Percentual ultrapassou 100%' } });
             return;
         }
 
