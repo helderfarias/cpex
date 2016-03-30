@@ -5,7 +5,7 @@
   "description": "cpex",
   "scripts": {
     "build": "webpack -p",
-    "start": "NODE_ENV=dev NODE_DEBUG=true electron .",
+    "start": "NODE_ENV=dev NODE_DEBUG=false electron .",
     "package": "NODE_ENV=prod && npm run build && electron-packager ./ CPEX --out ./bin --platform=darwin --arch=x64 --version=0.36.0 --overwrite --ignore=\"ignore|.bin|bin|web/src|web/css|webpack.config.js|.gitignore|.editorconfig|.babelrc|css|cfg|README.md\"",
     "watch": "webpack-dev-server --hot --inline",
     "migrate-up": "knex migrate:latest --cwd ./api/migrations",
