@@ -18,9 +18,78 @@ import List from 'material-ui/lib/lists/list';
 import ListItem from 'material-ui/lib/lists/list-item';
 import RaisedButton from 'material-ui/lib/raised-button';
 import Dialog from 'material-ui/lib/dialog';
+import IconMenu from 'material-ui/lib/menus/icon-menu';
+import MenuItem from 'material-ui/lib/menus/menu-item';
+import Paper from 'material-ui/lib/paper';
+import Divider from 'material-ui/lib/divider';
+import MoreVertIcon from 'material-ui/lib/svg-icons/navigation/more-vert';
+import KeyboardArrowRightIcon from 'material-ui/lib/svg-icons/hardware/keyboard-arrow-right';
+import ContentInbox from 'material-ui/lib/svg-icons/content/inbox';
+import ContentAdd from 'material-ui/lib/svg-icons/content/add';
+import FloatingActionButton from 'material-ui/lib/floating-action-button';
 
 import MarkupAction from '../actions/MarkupAction';
 import MarkupStore from '../stores/MarkupStore';
+
+
+class ListagemIncidenteView extends Component {
+
+    constructor(props) {
+        super(props);
+        this.calcularMarkupDivisor = this.calcularMarkupDivisor.bind(this);
+        this.calcularMarkupMultiplicador = this.calcularMarkupMultiplicador.bind(this);
+    }
+
+    render() {
+        return (
+            <Paper zDepth={2}>
+                <TextField style={style} hintText="Nome do markup" fullWidth={true} underlineShow={false} />
+
+                <Divider />
+
+                <div>
+                    <List subheader="Incidentes" subheaderStyle={{ fontSize: 16 }}>
+                        {this.props.initialIncidentes}
+                    </List>
+
+                    <Divider />
+
+                    <List>
+                        <ListItem primaryText={<div>Markup Divisor Mkd=(100-Tot. Perc.)/100: <span style={styles.sumario}>{this.calcularMarkupDivisor()}</span></div>} />
+                        <ListItem primaryText={<div>Markup Multiplicador Mkm=1/Mkd: <span style={styles.sumario}>{this.calcularMarkupMultiplicador()}</span></div>} />
+                    </List> 
+                </div>
+            </Paper>
+        );
+    }
+
+    calcularMarkupDivisor() {
+        if (!MarkupStore.getMarkup().incidentes.length) {
+            return 0.0;
+        }
+
+        let markup = MarkupStore.getMarkup();
+
+        let totalPercentual = markup.incidentes.map((i) => i.valor)
+                                               .reduce((a, b) => parseFloat(a.valor) + parseFloat(b.valor));
+
+        let mkd = (100 - totalPercentual) / 100;
+
+        return mkd;
+    }
+
+    calcularMarkupMultiplicador() {
+        if (!MarkupStore.getMarkup().incidentes.length) {
+            return 0.0;
+        }
+
+        let mkd = this.calcularMarkupDivisor();
+
+        return 1 / mkd;
+    }
+
+}
+
 
 class NovoMarkupView extends Component {
 
@@ -28,36 +97,22 @@ class NovoMarkupView extends Component {
         super(props);
         this.voltar = this.voltar.bind(this);
         this.onChangeListener = this.onChangeListener.bind(this);
-        this.novoIncidente = this.novoIncidente.bind(this);
+        this.iniciarIncidente = this.iniciarIncidente.bind(this);
         this.salvarIncidente = this.salvarIncidente.bind(this);
         this.cancelarIncidente = this.cancelarIncidente.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
         this.state = this.getInitialStateFrom();
     }
 
     getInitialStateFrom() {
         return {
-            dialog: {
-                open: false,
-                text: '',
-                title: '',
-            },
+            dialog: { open: false, text: '', title: '' },
+            isIncidente: false,
             markup: { incidentes: [] },
-            isNovoIncidente: false,
-            nome: null,
-            valor: null,
-            form: {
-                nome: null,
-                valor: null,
-                invalido: false,
-            }
-        };
-    }
-
-    getInitialFormFrom() {
-        return {
-            nome: null,
-            valor: null,
-            invalido: false,
+            form: [
+                { value: null, error: null },
+                { value: null, error: null },
+            ]
         };
     }
 
@@ -70,9 +125,20 @@ class NovoMarkupView extends Component {
     }
 
 	render() {
+        const rightIconMenu = (
+            <IconMenu iconButtonElement={
+                    <IconButton>
+                        <MoreVertIcon color={Colors.grey400} />
+                    </IconButton>
+                }>
+                <MenuItem>Editar</MenuItem>
+                <MenuItem>Excluir</MenuItem>
+            </IconMenu>
+        );
+
         let incidentes = this.state.markup.incidentes.map((i) => {
             return (
-                 <ListItem key={i.id} primaryText={i.nome} leftIcon={<NavigationClose />} />
+                 <ListItem key={i.nome} style={styles.itemIncidente} primaryText={`${i.nome} (${i.valor}%)`} leftIcon={<KeyboardArrowRightIcon />} secondaryTextLines={2} rightIconButton={rightIconMenu}/>
             );
         });
 
@@ -89,7 +155,7 @@ class NovoMarkupView extends Component {
                             <FlatButton
                                 label="OK"
                                 primary={true}
-                                onTouchTap={ () => this.setState({open: false}) }
+                                onTouchTap={ () => this.setState({ dialog: {open: false} }) }
                             />
                         ]}
                         modal={false}
@@ -98,152 +164,134 @@ class NovoMarkupView extends Component {
                         {this.state.dialog.text}
                     </Dialog>
 
-                    <Card>
-                        <CardText>
-                            <TextField
-                                floatingLabelText="Nome"
-                                hintText="Digite o nome do markup"
-                                fullWidth={true} />
+                    { !this.state.isIncidente && 
+                        <ListagemIncidenteView initialMarkup={this.state.markup} initialIncidentes={incidentes}/> 
+                    }
 
-                            <div style={styles.labelIncidente}>
-                                <PlaylistAddIcon style={{verticalAlign: 'middle'}}/>
-                                <span style={{marginLeft: 10}}>Itens Incidente</span>
-                            </div>
+                    { this.state.isIncidente && 
+                        <Paper zDepth={2}>
+                            <List subheader="Incidentes" subheaderStyle={{ fontSize: 16 }}>
+                                <TextField id="nome" style={style} hintText="Digite o nome do incidente" autoFocus={true} fullWidth={true} underlineShow={false} errorText={this.state.form[0].error} onChange={this.handleInputChange} />                                
+                                <Divider />
+                                <TextField id="valor" style={style} hintText="%" fullWidth={true} size={5} maxLength={5} underlineShow={false} errorText={this.state.form[1].error} onChange={this.handleInputChange} />
+                                <Divider />
+                                <div style={{ paddingTop: 10, textAlign: 'right' }}>
+                                    <IconButton
+                                        tooltip="Cancelar"
+                                        tooltipPosition={"top-right"}
+                                        onTouchTap={this.cancelarIncidente}>
+                                        <ClearIcon />
+                                    </IconButton>
+                                    <IconButton
+                                        disabled={ !!this.state.form.filter((f) => !!f.error).length }
+                                        tooltip="Salvar"
+                                        tooltipPosition={"top-left"}
+                                        onTouchTap={this.salvarIncidente}>
+                                        <SaveIcon />
+                                    </IconButton>
+                                </div>
+                            </List>
+                        </Paper>
+                    }
 
-                            <div style={styles.itemIncidente}>
-                                { !this.state.isNovoIncidente &&
-                                    <List>{incidentes}</List>
-                                }
-
-                                { this.state.isNovoIncidente &&
-                                    <div>
-                                        <TextField
-                                            floatingLabelText="Incidente"
-                                            hintText="Digite o nome do incidente"
-                                            autoFocus={true}
-                                            fullWidth={true}
-                                            errorText={this.state.form.nome}
-                                            onChange={ (e) => this.setState({ nome: e.target.value, form: this.getInitialFormFrom() }) }/>
-
-                                        <TextField
-                                            floatingLabelText="Percentual"
-                                            hintText="%"
-                                            fullWidth={true}
-                                            size={3}
-                                            maxLength={3}
-                                            errorText={this.state.form.valor}
-                                            onChange={ (e) => this.setState({ valor: e.target.value, form: this.getInitialFormFrom() }) }/>
-
-                                        <div style={{ paddingTop: 10, textAlign: 'right' }}>
-                                            <IconButton
-                                                tooltip="Cancelar"
-                                                tooltipPosition={"top-right"}
-                                                onTouchTap={this.cancelarIncidente}>
-                                                <ClearIcon />
-                                            </IconButton>
-                                            <IconButton
-                                                tooltip="Salvar"
-                                                tooltipPosition={"top-left"}
-                                                onTouchTap={this.salvarIncidente}>
-                                                <SaveIcon />
-                                            </IconButton>
-                                        </div>
-                                    </div>
-                                }
-
-                                { !this.state.isNovoIncidente &&
-                                    <FlatButton
-                                          label="Adicionar novo incidente"
-                                          labelPosition="after"
-                                          backgroundColor={'transparent'}
-                                          icon={<AddIcon />}
-                                          labelStyle={{'textTransform': 'none'}}
-                                          style={styles.buttonNovo}
-                                          onTouchTap={this.novoIncidente}/>
-                                }
-                            </div>
-                        </CardText>
-                    </Card>
+                    { !this.state.isIncidente && 
+                        <FloatingActionButton secondary={true} style={styles.novo} onTouchTap={this.iniciarIncidente}>
+                            <ContentAdd />
+                        </FloatingActionButton>
+                    }
             </div>
     	);
 	}
 
     onChangeListener() {
-        this.setState({ markups: MarkupStore.getMarkups() })
+        if (MarkupStore.getErros()) {
+            this.setState({ dialog: {open: true, title: 'Atenção!', text: MarkupStore.getErros()} })
+            return;   
+        }
+
+        this.setState({ 
+            dialog: {open: false}, 
+            isIncidente: false,
+            markup: MarkupStore.getMarkup(),
+        });
     }
 
     salvarIncidente() {
-        if (!this.state.nome) {
-            this.state.form.nome = 'Campo requerido';
-            this.state.form.invalido = true;
-        }
-
-        if (!this.state.valor) {
-            this.state.form.valor = 'Campo requerido';
-            this.state.form.invalido = true;
-        } else if (isNaN(this.state.valor)) {
-            this.state.form.valor = 'Valor inválido';
-            this.state.form.invalido = true;
-        }
-
-        if (this.state.form.invalido) {
-            this.setState({ isNovoIncidente: true, form: this.state.form });
-            return;
-        }
-
-        //Recuperar anterior
         let markup = this.state.markup;
-        markup.incidentes = markup.incidentes || [];
 
-        //Validar percentual total
-        let somatorio = 0;
-        markup.incidentes.filter((i) => somatorio = somatorio + parseFloat(i.valor));
-        somatorio = somatorio + parseFloat(this.state.valor);
-        if (somatorio > 100) {
-            this.setState({ dialog: { open: true, text: 'Percentual ultrapassou 100%' } });
-            return;
-        }
+        let incidente = {
+            nome: this.state.form[0].value,
+            valor: this.state.form[1].value,
+        };
 
-        //Se válido adiciona
-        markup.incidentes.push({
-            id: markup.incidentes.length + 1,
-            nome: this.state.nome,
-            valor: this.state.valor
-        });
+        console.log(incidente);
 
-        let state = this.getInitialStateFrom();
-        state.markup = markup;
-        this.setState(state);
+        MarkupAction.salvar(markup, incidente);
     }
 
     cancelarIncidente() {
-        this.setState({ isNovoIncidente: false, form: this.state.form });
+        this.setState({ 
+            dialog: {open: false}, 
+            isIncidente: false,
+            form: this.state.form,
+        });
     }
 
-    novoIncidente() {
-        this.setState({ isNovoIncidente: true });
+    iniciarIncidente() {
+        this.setState({ isIncidente: true });
     }
 
     voltar() {
         this.context.router.push('markups');
     }
 
+    handleInputChange(e) {
+        if (e.target.id === 'nome') {
+            this.state.form[0].value = e.target.value;
+            this.state.form[0].error = (e.target.value ? null : 'Campo obrigatório');
+            this.setState({ form: this.state.form });
+            return;
+        }
+
+        if (e.target.id === 'valor') {
+            this.state.form[1].value = parseFloat(e.target.value);
+            this.state.form[1].error = (e.target.value ? null : 'Campo obrigatório');
+            this.setState({ form: this.state.form });
+            return;
+        }
+    }
+
 }
+
+const style = {
+  marginLeft: 20,
+};
 
 const styles = {
     title: {
         cursor: 'pointer',
     },
     labelIncidente: {
-        paddingTop: 25,
+        marginLeft: 20,
+        paddingTop: 15,
         fontSize: 16,
     },
     itemIncidente: {
-        marginLeft: 50,
+        marginLeft: 20,
     },
     buttonNovo: {
-        margin: 5,
-    }
+        margin: 10,
+    },
+    sumario: {
+        fontWeight: 'bold',
+        fontSize: 18,
+        color: 'red',
+    },
+    novo: {
+        position: 'fixed',
+        bottom: 50,
+        right: 50,
+    }    
 };
 
 NovoMarkupView.contextTypes = {

@@ -11,6 +11,14 @@ class MarkupAction {
         });
     }
 
+    static salvar(markup, incidente) {
+        Dispatcher.dispatch({
+            actionType: Eventos.Markup.INCLUIR_INCIDENTE,
+            markup: markup,
+            incidente: incidente
+        });    	
+    }
+
 }
 
 module.exports = MarkupAction;
