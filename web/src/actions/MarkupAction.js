@@ -16,7 +16,15 @@ class MarkupAction {
             actionType: Eventos.Markup.INCLUIR_INCIDENTE,
             markup: markup,
             incidente: incidente
-        });    	
+        });
+    }
+
+    static excluirIncidente(markup, incidente) {
+        Dispatcher.dispatch({
+            actionType: Eventos.Markup.EXCLUIR_INCIDENTE,
+            markup: markup,
+            incidente: incidente
+        });
     }
 
 }

@@ -9,8 +9,8 @@ import QueuePlayNextIcon from 'material-ui/lib/svg-icons/av/queue-play-next';
 import LeftNav from 'material-ui/lib/left-nav';
 import List from 'material-ui/lib/lists/list';
 import ListItem from 'material-ui/lib/lists/list-item';
-
 import Empty from '../components/Empty';
+
 
 class AppMenu extends Component {
 

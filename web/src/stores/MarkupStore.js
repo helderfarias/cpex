@@ -11,7 +11,13 @@ class MarkupStore extends EventEmitter {
         super(props);
         this.erros = null;
         this.markups = [];
-        this.markup = { incidentes: [] };
+        this.markup = {
+            incidentes: [
+                // { nome: 'Juros', valor: 10.10 },
+                // { nome: 'Impostos1', valor: 30.34 },
+                // { nome: 'Impostos2', valor: 30.35 },
+            ]
+        };
     }
 
     emitChange() {
@@ -55,7 +61,7 @@ class MarkupStore extends EventEmitter {
         if (isNaN(incidente.valor)) {
             that.erros = 'Percentual inválido';
             callback();
-            return;            
+            return;
         }
 
         let somatorio = parseFloat(incidente.valor);
@@ -77,6 +83,18 @@ class MarkupStore extends EventEmitter {
         callback();
     }
 
+    excluirIncidente(markup, incidente, callback) {
+        this.erros = null;
+        this.markup = markup;
+
+        let index = this.markup.incidentes.indexOf(incidente);
+        if (index != -1) {
+            this.markup.incidentes.splice(index, 1);
+        }
+
+        callback();
+    }
+
 }
 
 var store = new MarkupStore();
@@ -89,6 +107,10 @@ Dispatcher.register(function(action) {
 
         case Eventos.Markup.INCLUIR_INCIDENTE:
             store.incluirIncidente(action.markup, action.incidente, () => store.emitChange());
+            break;
+
+        case Eventos.Markup.EXCLUIR_INCIDENTE:
+            store.excluirIncidente(action.markup, action.incidente, () => store.emitChange());
             break;
 
         default:

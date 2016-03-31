@@ -5,6 +5,7 @@ require('../css/main.css');
 import React, { Component } from 'react';
 import Menu from './Menu';
 
+
 class HomeView extends Component {
 
 	render() {

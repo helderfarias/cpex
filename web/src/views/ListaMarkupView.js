@@ -15,9 +15,9 @@ import FloatingActionButton from 'material-ui/lib/floating-action-button';
 import ContentAdd from 'material-ui/lib/svg-icons/content/add';
 import Card from 'material-ui/lib/card/card';
 import CardText from 'material-ui/lib/card/card-text';
-
 import MarkupAction from '../actions/MarkupAction';
 import MarkupStore from '../stores/MarkupStore';
+
 
 class ListaMarkupView extends Component {
 
@@ -43,7 +43,7 @@ class ListaMarkupView extends Component {
 	render() {
         let registros = this.state.markups.map((m) => {
             return (
-                <TableRow key={m.id}>
+                <TableRow key={m.id} selectable={false}>
                     <TableRowColumn>{m.id}</TableRowColumn>
                     <TableRowColumn>{m.nome}</TableRowColumn>
                 </TableRow>
@@ -59,13 +59,13 @@ class ListaMarkupView extends Component {
                 <Card>
                     <CardText>
                         <Table>
-                            <TableHeader>
+                            <TableHeader adjustForCheckbox={false} displaySelectAll={false}>
                                 <TableRow>
                                     <TableHeaderColumn>Código</TableHeaderColumn>
                                     <TableHeaderColumn>Nome</TableHeaderColumn>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody>
+                            <TableBody displayRowCheckbox={false}>
                                 {registros}
                             </TableBody>
                         </Table>
@@ -99,7 +99,7 @@ const styles = {
     },
     novo: {
         position: 'fixed',
-        bottom: 50,
+        bottom: 30,
         right: 50,
     }
 };

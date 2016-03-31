@@ -1,6 +1,7 @@
 'use strict';
 
 import React, { Component } from 'react';
+import { Table, TableHeaderColumn, TableRow, TableHeader, TableRowColumn, TableBody } from 'material-ui/lib/table';
 import AppBar from 'material-ui/lib/app-bar';
 import IconButton from 'material-ui/lib/icon-button';
 import NavigationClose from 'material-ui/lib/svg-icons/navigation/close';
@@ -27,69 +28,10 @@ import KeyboardArrowRightIcon from 'material-ui/lib/svg-icons/hardware/keyboard-
 import ContentInbox from 'material-ui/lib/svg-icons/content/inbox';
 import ContentAdd from 'material-ui/lib/svg-icons/content/add';
 import FloatingActionButton from 'material-ui/lib/floating-action-button';
-
+import Tabs from 'material-ui/lib/tabs/tabs';
+import Tab from 'material-ui/lib/tabs/tab';
 import MarkupAction from '../actions/MarkupAction';
 import MarkupStore from '../stores/MarkupStore';
-
-
-class ListagemIncidenteView extends Component {
-
-    constructor(props) {
-        super(props);
-        this.calcularMarkupDivisor = this.calcularMarkupDivisor.bind(this);
-        this.calcularMarkupMultiplicador = this.calcularMarkupMultiplicador.bind(this);
-    }
-
-    render() {
-        return (
-            <Paper zDepth={2}>
-                <TextField style={style} hintText="Nome do markup" fullWidth={true} underlineShow={false} />
-
-                <Divider />
-
-                <div>
-                    <List subheader="Incidentes" subheaderStyle={{ fontSize: 16 }}>
-                        {this.props.initialIncidentes}
-                    </List>
-
-                    <Divider />
-
-                    <List>
-                        <ListItem primaryText={<div>Markup Divisor Mkd=(100-Tot. Perc.)/100: <span style={styles.sumario}>{this.calcularMarkupDivisor()}</span></div>} />
-                        <ListItem primaryText={<div>Markup Multiplicador Mkm=1/Mkd: <span style={styles.sumario}>{this.calcularMarkupMultiplicador()}</span></div>} />
-                    </List> 
-                </div>
-            </Paper>
-        );
-    }
-
-    calcularMarkupDivisor() {
-        if (!MarkupStore.getMarkup().incidentes.length) {
-            return 0.0;
-        }
-
-        let markup = MarkupStore.getMarkup();
-
-        let totalPercentual = markup.incidentes.map((i) => i.valor)
-                                               .reduce((a, b) => parseFloat(a.valor) + parseFloat(b.valor));
-
-        let mkd = (100 - totalPercentual) / 100;
-
-        return mkd;
-    }
-
-    calcularMarkupMultiplicador() {
-        if (!MarkupStore.getMarkup().incidentes.length) {
-            return 0.0;
-        }
-
-        let mkd = this.calcularMarkupDivisor();
-
-        return 1 / mkd;
-    }
-
-}
-
 
 class NovoMarkupView extends Component {
 
@@ -101,6 +43,10 @@ class NovoMarkupView extends Component {
         this.salvarIncidente = this.salvarIncidente.bind(this);
         this.cancelarIncidente = this.cancelarIncidente.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.calcularMarkupDivisor = this.calcularMarkupDivisor.bind(this);
+        this.calcularMarkupMultiplicador = this.calcularMarkupMultiplicador.bind(this);
+        this.criarFormMarkup = this.criarFormMarkup.bind(this);
+        this.criarFormValidacao = this.criarFormValidacao.bind(this);
         this.state = this.getInitialStateFrom();
     }
 
@@ -108,7 +54,7 @@ class NovoMarkupView extends Component {
         return {
             dialog: { open: false, text: '', title: '' },
             isIncidente: false,
-            markup: { incidentes: [] },
+            markup: MarkupStore.getMarkup(),
             form: [
                 { value: null, error: null },
                 { value: null, error: null },
@@ -125,23 +71,6 @@ class NovoMarkupView extends Component {
     }
 
 	render() {
-        const rightIconMenu = (
-            <IconMenu iconButtonElement={
-                    <IconButton>
-                        <MoreVertIcon color={Colors.grey400} />
-                    </IconButton>
-                }>
-                <MenuItem>Editar</MenuItem>
-                <MenuItem>Excluir</MenuItem>
-            </IconMenu>
-        );
-
-        let incidentes = this.state.markup.incidentes.map((i) => {
-            return (
-                 <ListItem key={i.nome} style={styles.itemIncidente} primaryText={`${i.nome} (${i.valor}%)`} leftIcon={<KeyboardArrowRightIcon />} secondaryTextLines={2} rightIconButton={rightIconMenu}/>
-            );
-        });
-
       	return (
             <div>
                 <AppBar
@@ -164,41 +93,16 @@ class NovoMarkupView extends Component {
                         {this.state.dialog.text}
                     </Dialog>
 
-                    { !this.state.isIncidente && 
-                        <ListagemIncidenteView initialMarkup={this.state.markup} initialIncidentes={incidentes}/> 
-                    }
 
-                    { this.state.isIncidente && 
-                        <Paper zDepth={2}>
-                            <List subheader="Incidentes" subheaderStyle={{ fontSize: 16 }}>
-                                <TextField id="nome" style={style} hintText="Digite o nome do incidente" autoFocus={true} fullWidth={true} underlineShow={false} errorText={this.state.form[0].error} onChange={this.handleInputChange} />                                
-                                <Divider />
-                                <TextField id="valor" style={style} hintText="%" fullWidth={true} size={5} maxLength={5} underlineShow={false} errorText={this.state.form[1].error} onChange={this.handleInputChange} />
-                                <Divider />
-                                <div style={{ paddingTop: 10, textAlign: 'right' }}>
-                                    <IconButton
-                                        tooltip="Cancelar"
-                                        tooltipPosition={"top-right"}
-                                        onTouchTap={this.cancelarIncidente}>
-                                        <ClearIcon />
-                                    </IconButton>
-                                    <IconButton
-                                        disabled={ !!this.state.form.filter((f) => !!f.error).length }
-                                        tooltip="Salvar"
-                                        tooltipPosition={"top-left"}
-                                        onTouchTap={this.salvarIncidente}>
-                                        <SaveIcon />
-                                    </IconButton>
-                                </div>
-                            </List>
-                        </Paper>
-                    }
+                    <Tabs>
+                        <Tab label="Markup">
+                            { this.criarFormMarkup() }
+                        </Tab>
 
-                    { !this.state.isIncidente && 
-                        <FloatingActionButton secondary={true} style={styles.novo} onTouchTap={this.iniciarIncidente}>
-                            <ContentAdd />
-                        </FloatingActionButton>
-                    }
+                        <Tab label="Validação">
+                            { this.criarFormValidacao() }
+                        </Tab>
+                    </Tabs>
             </div>
     	);
 	}
@@ -206,11 +110,11 @@ class NovoMarkupView extends Component {
     onChangeListener() {
         if (MarkupStore.getErros()) {
             this.setState({ dialog: {open: true, title: 'Atenção!', text: MarkupStore.getErros()} })
-            return;   
+            return;
         }
 
-        this.setState({ 
-            dialog: {open: false}, 
+        this.setState({
+            dialog: {open: false},
             isIncidente: false,
             markup: MarkupStore.getMarkup(),
         });
@@ -224,14 +128,12 @@ class NovoMarkupView extends Component {
             valor: this.state.form[1].value,
         };
 
-        console.log(incidente);
-
         MarkupAction.salvar(markup, incidente);
     }
 
     cancelarIncidente() {
-        this.setState({ 
-            dialog: {open: false}, 
+        this.setState({
+            dialog: {open: false},
             isIncidente: false,
             form: this.state.form,
         });
@@ -261,11 +163,178 @@ class NovoMarkupView extends Component {
         }
     }
 
-}
+    calcularMarkupDivisor() {
+        if (!MarkupStore.getMarkup().incidentes.length) {
+            return 0.0;
+        }
 
-const style = {
-  marginLeft: 20,
-};
+        let markup = MarkupStore.getMarkup();
+
+        let totalPercentual = markup.incidentes.map((incidente) => incidente.valor)
+                                               .reduce((valor1, valor2) => valor1 + valor2);
+
+        let mkd = (100 - totalPercentual) / 100;
+
+        return mkd.toFixed(4);
+    }
+
+    calcularMarkupMultiplicador() {
+        if (!MarkupStore.getMarkup().incidentes.length) {
+            return 0.0;
+        }
+
+        let mkd = 1 / this.calcularMarkupDivisor();
+
+        return mkd.toFixed(4);
+    }
+
+    calcularTotalPercentual() {
+        if (!MarkupStore.getMarkup().incidentes.length) {
+            return 0.00;
+        }
+
+        let markup = MarkupStore.getMarkup();
+
+        let total = markup.incidentes.map((incidente) => incidente.valor)
+                                     .reduce((valor1, valor2) => valor1 + valor2);
+
+        return total.toFixed(2);
+    }
+
+    criarFormValidacao() {
+        return (
+            <Paper>
+                <Paper style={{ margin: 10 }}>
+                    <List>
+                        <ListItem disabled={true} primaryText={<div>Custo Variável por unidade: <span style={styles.sumario}>10</span></div>} />
+                        <ListItem disabled={true} primaryText={<div>Markup Divisor: <span style={styles.sumario}>{this.calcularMarkupDivisor()}%</span></div>} />
+                        <ListItem disabled={true} primaryText={<div>Markup Multiplicador: <span style={styles.sumario}>{this.calcularMarkupMultiplicador()}%</span></div>} />
+                    </List>
+                </Paper>
+
+                <Table>
+                    <TableHeader adjustForCheckbox={false} displaySelectAll={false}>
+                        <TableRow>
+                            <TableHeaderColumn>Item Incidente</TableHeaderColumn>
+                            <TableHeaderColumn>Percentual</TableHeaderColumn>
+                            <TableHeaderColumn>Valor</TableHeaderColumn>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody displayRowCheckbox={false}>
+                        <TableRow selectable={false}>
+                            <TableRowColumn>Simples Nacional</TableRowColumn>
+                            <TableRowColumn>10</TableRowColumn>
+                            <TableRowColumn>10</TableRowColumn>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </Paper>
+        );
+    }
+
+    criarFormMarkup() {
+        let markup = this.state.markup;
+
+        let incidentes = markup.incidentes.map((value, key) => {
+            const isRenderDivider = (key < markup.incidentes.length - 1);
+            const isNovo = (key === (markup.incidentes.length - 1) && !this.state.isIncidente);
+
+            return (
+                <div>
+                    <ListItem primaryText={`${value.nome} (${value.valor}%)`}
+                                leftIcon={<KeyboardArrowRightIcon />}
+                                disabled={true}
+                                secondaryTextLines={2}
+                                rightIconButton={
+                                    <div>
+                                        <IconMenu iconButtonElement={
+                                                <IconButton>
+                                                    <MoreVertIcon color={Colors.grey400}/>
+                                                </IconButton>
+                                            }>
+                                            <MenuItem onTouchTap={ () => MarkupAction.excluirIncidente(markup, value) }>Excluir</MenuItem>
+                                        </IconMenu>
+
+                                        <IconButton disabled={!isNovo} onTouchTap={this.iniciarIncidente}>
+                                            { isNovo && <ContentAdd /> }
+                                        </IconButton>
+                                    </div>
+                                }/>
+                    { isRenderDivider && <Divider /> }
+                </div>
+            );
+        });
+
+        let vazio = null;
+        if (!incidentes.length) {
+            vazio = (
+                <ListItem primaryText={<br/>}
+                            secondaryTextLines={2}
+                            disabled={true}
+                            rightIconButton={
+                                <div>
+                                    <IconButton disabled={true}/>
+                                    <IconButton onTouchTap={this.iniciarIncidente}>
+                                        <ContentAdd />
+                                    </IconButton>
+                                </div>
+                            }/>
+            );
+        }
+
+        return (
+            <Paper>
+                <TextField style={styles.input} hintText="Nome do markup" underlineShow={false} />
+                <Divider />
+                <List>
+                    <Paper style={{ margin: 10 }}>
+                        <List>
+                            {!this.state.isIncidente &&
+                                incidentes
+                            }
+
+                            {!this.state.isIncidente &&
+                                vazio
+                            }
+
+                            {this.state.isIncidente &&
+                                <div>
+                                    {!incidentes && <Divider/>}
+                                    <br />
+                                    <TextField id="nome"
+                                                style={styles.input}
+                                                hintText="Digite o nome do incidente"
+                                                errorText={this.state.form[0].error}
+                                                autoFocus={true}
+                                                onChange={this.handleInputChange} />
+                                    <br />
+                                    <TextField id="valor"
+                                                style={styles.input}
+                                                hintText="%"
+                                                errorText={this.state.form[0].error}
+                                                size={5} maxLength={5}
+                                                onChange={this.handleInputChange} />
+                                    <br />
+                                    <div style={{ textAlign: 'right', margin: 20 }}>
+                                        <RaisedButton style={{ marginLeft: 4 }} label="Cancelar" primary={true} onTouchTap={this.cancelarIncidente}/>
+                                        <RaisedButton style={{ marginLeft: 4 }} label="Salvar" disabled={ !!this.state.form.filter((f) => !!f.error).length } secondary={true} onTouchTap={this.salvarIncidente} />
+                                    </div>
+                                </div>
+                            }
+                        </List>
+                        <Divider />
+                        <List>
+                            <ListItem disabled={true} primaryText={<div>Total Percentual: <span style={styles.sumario}>{this.calcularTotalPercentual()}%</span></div>} />
+                            <ListItem disabled={true} primaryText={<div>Markup Divisor: <span style={styles.sumario}>{this.calcularMarkupDivisor()}%</span></div>} />
+                            <ListItem disabled={true} primaryText={<div>Markup Multiplicador: <span style={styles.sumario}>{this.calcularMarkupMultiplicador()}%</span></div>} />
+                        </List>
+                    </Paper>
+                </List>
+            </Paper>
+        );
+    }
+
+}
 
 const styles = {
     title: {
@@ -277,7 +346,6 @@ const styles = {
         fontSize: 16,
     },
     itemIncidente: {
-        marginLeft: 20,
     },
     buttonNovo: {
         margin: 10,
@@ -291,7 +359,11 @@ const styles = {
         position: 'fixed',
         bottom: 50,
         right: 50,
-    }    
+    },
+    input: {
+        marginLeft: 20,
+        width: '90%'
+    }
 };
 
 NovoMarkupView.contextTypes = {
