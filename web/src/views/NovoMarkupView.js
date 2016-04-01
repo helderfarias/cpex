@@ -30,8 +30,10 @@ import ContentAdd from 'material-ui/lib/svg-icons/content/add';
 import FloatingActionButton from 'material-ui/lib/floating-action-button';
 import Tabs from 'material-ui/lib/tabs/tabs';
 import Tab from 'material-ui/lib/tabs/tab';
+
 import MarkupAction from '../actions/MarkupAction';
 import MarkupStore from '../stores/MarkupStore';
+import CurrencyField from '../components/CurrencyField';
 
 class NovoMarkupView extends Component {
 
@@ -47,6 +49,7 @@ class NovoMarkupView extends Component {
         this.calcularMarkupMultiplicador = this.calcularMarkupMultiplicador.bind(this);
         this.criarFormMarkup = this.criarFormMarkup.bind(this);
         this.criarFormValidacao = this.criarFormValidacao.bind(this);
+        this.calcularValorVenda = this.calcularValorVenda.bind(this);
         this.state = this.getInitialStateFrom();
     }
 
@@ -183,9 +186,9 @@ class NovoMarkupView extends Component {
             return 0.0;
         }
 
-        let mkd = 1 / this.calcularMarkupDivisor();
+        let mkm = 1 / this.calcularMarkupDivisor();
 
-        return mkd.toFixed(4);
+        return mkm.toFixed(4);
     }
 
     calcularTotalPercentual() {
@@ -201,14 +204,37 @@ class NovoMarkupView extends Component {
         return total.toFixed(2);
     }
 
+    calcularValorVenda() {
+        if (!this.state.custoPorUnidade) {
+            return 0;
+        }
+
+
+        let valorCusto = this.state.custoPorUnidade;
+
+        let markupMultiplicador = this.calcularMarkupMultiplicador();
+
+        let total = valorCusto * markupMultiplicador;
+
+        return total.toFixed(2);
+    }
+
     criarFormValidacao() {
         return (
             <Paper>
                 <Paper style={{ margin: 10 }}>
                     <List>
-                        <ListItem disabled={true} primaryText={<div>Custo Variável por unidade: <span style={styles.sumario}>10</span></div>} />
-                        <ListItem disabled={true} primaryText={<div>Markup Divisor: <span style={styles.sumario}>{this.calcularMarkupDivisor()}%</span></div>} />
-                        <ListItem disabled={true} primaryText={<div>Markup Multiplicador: <span style={styles.sumario}>{this.calcularMarkupMultiplicador()}%</span></div>} />
+                        <TextField id="nome"
+                                    style={styles.input}
+                                    hintText="Custo Variável por unidade"
+                                    autoFocus={true}
+                                    onChange={ (e) => this.setState({ custoPorUnidade: parseFloat(e.target.value) }) } />
+
+                        <ListItem disabled={true} 
+                                    primaryText={<div>Markup Multiplicador: <span style={styles.sumario}>{this.calcularMarkupMultiplicador()}%</span></div>} />
+
+                        <ListItem disabled={true} 
+                                    primaryText={<div>Valor de Venda: <span style={styles.sumario}>R$ {this.calcularValorVenda()}</span></div>} />
                     </List>
                 </Paper>
 
@@ -284,7 +310,18 @@ class NovoMarkupView extends Component {
 
         return (
             <Paper>
-                <TextField style={styles.input} hintText="Nome do markup" underlineShow={false} />
+                <CurrencyField style={styles.input} 
+                                hintText="Nome do markup" 
+                                underlineShow={false}
+                                precision={2}
+                                separator=','
+                                delimiter='.'
+                                unit='R$'
+                                onChange={(r, d) => {
+                                    console.log(r, d);
+                                    // this.setState({});
+                                }}/>
+
                 <Divider />
                 <List>
                     <Paper style={{ margin: 10 }}>
